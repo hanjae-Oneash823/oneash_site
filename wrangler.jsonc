@@ -1,0 +1,7 @@
+// Cloudflare Workers config: serve the static build in ./dist.
+// "name" must match the project name in the Cloudflare dashboard.
+{
+  "name": "oneash-site",
+  "compatibility_date": "2026-11-01",
+  "assets": { "directory": "./dist" }
+}
