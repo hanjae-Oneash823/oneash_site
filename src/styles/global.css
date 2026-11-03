@@ -1,0 +1,66 @@
+/* Look adapted from nodaysoff.run: grayscale, Jost for text, Tamzen bitmap font for labels/data. */
+@font-face {
+  font-family: Tamzen;
+  src: url('/fonts/Tamzen7x14r.ttf') format('truetype');
+  font-weight: 400;
+}
+@font-face {
+  font-family: Tamzen;
+  src: url('/fonts/Tamzen7x14b.ttf') format('truetype');
+  font-weight: 700;
+}
+
+:root {
+  --bg: #fff;
+  --fg: #171717;
+  --muted: #737373;
+  --line: #e5e5e5;
+  --sans: 'Jost Variable', system-ui, sans-serif;
+  --mono: Tamzen, ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0a0a0a; --fg: #ededed; --muted: #a3a3a3; --line: #262626; }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+a { color: inherit; }
+
+main { max-width: 1200px; margin: 0 auto; padding: 4rem 1.25rem; }
+section { margin-top: 6rem; }
+
+/* bitmap font only looks crisp at its native 14px with no smoothing */
+.mono, h2, th, .stat span, figcaption {
+  font-family: var(--mono);
+  font-size: 14px;
+  -webkit-font-smoothing: none;
+}
+
+h1 { font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 600; letter-spacing: -0.02em; text-transform: uppercase; margin: 0; line-height: 1; }
+h2 { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin: 0; }
+.caption { color: var(--muted); margin: 0.25rem 0 1.5rem; }
+
+.stats { display: flex; flex-wrap: wrap; gap: 2rem 3rem; margin-top: 3rem; }
+.stat strong { display: block; font-size: 2.25rem; font-weight: 500; line-height: 1; }
+.stat span { color: var(--muted); text-transform: uppercase; }
+
+/* masonry-style columns that keep each photo's aspect ratio */
+.grid { columns: 3 300px; column-gap: 0.75rem; }
+.grid a { display: block; margin-bottom: 0.75rem; break-inside: avoid; }
+.grid img { width: 100%; height: auto; display: block; transition: opacity 0.2s; }
+.grid a:hover img { opacity: 0.85; }
+
+dialog { border: 0; padding: 0; background: transparent; max-width: 95vw; max-height: 95vh; color: #ededed; }
+dialog::backdrop { background: rgb(10 10 10 / 0.95); }
+dialog figure { margin: 0; }
+dialog img { max-width: 95vw; max-height: 88vh; display: block; }
+figcaption { margin-top: 0.5rem; color: #a3a3a3; }
+
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; color: var(--muted); font-weight: 400; text-transform: uppercase; }
+th, td { padding: 0.6rem 1rem 0.6rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th:first-child { width: 9rem; }
+td.mono { white-space: nowrap; color: var(--muted); }
+td small { display: block; color: var(--muted); font-size: 0.95rem; }
+
+footer { margin-top: 6rem; color: var(--muted); }

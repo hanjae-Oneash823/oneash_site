@@ -1,0 +1,116 @@
+---
+import '@fontsource-variable/jost';
+import '../styles/global.css';
+import { Image, getImage } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import { getPhotos } from '../lib/photos';
+
+const NAME = 'oneash';
+const TAGLINE = 'photographs, research, and things i built.';
+const LIGHTBOX_WIDTH = 2400;
+
+const photos = await getPhotos();
+const lightbox = await Promise.all(photos.map((p) => getImage({ src: p.image, width: LIGHTBOX_WIDTH })));
+
+const byDate = <T extends { data: { date: Date } }>(items: T[]) =>
+  items.toSorted((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const research = byDate(await getCollection('research'));
+const projects = byDate(await getCollection('projects'));
+
+const years = photos.flatMap((p) => (p.taken ? [p.taken.getFullYear()] : []));
+const stats = [
+  [photos.length, 'frames'],
+  [years.length ? Math.max(...years) - Math.min(...years) + 1 : 0, 'years shooting'],
+  [new Set(photos.map((p) => p.camera).filter(Boolean)).size, 'cameras'],
+  [research.length, 'papers'],
+  [projects.length, 'projects'],
+].filter(([n]) => n); // hide stats that are still 0
+
+const fmt = (d: Date) => d.toISOString().slice(0, 10);
+const sections = [
+  { id: 'research', title: 'Research', caption: 'what i have been thinking about.', items: research },
+  { id: 'projects', title: 'Projects', caption: 'code, mostly.', items: projects },
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{NAME}</title>
+    <meta name="description" content={TAGLINE} />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>{NAME}</h1>
+        <p class="caption">{TAGLINE}</p>
+        <div class="stats">
+          {stats.map(([n, label]) => <div class="stat"><strong>{n}</strong><span>{label}</span></div>)}
+        </div>
+      </header>
+
+      <section id="photography">
+        <h2>Photography</h2>
+        <p class="caption">click any frame to view it larger.</p>
+        {photos.length === 0 && <p class="mono">no photos yet: npm run add-photos ~/path/to/folder</p>}
+        <div class="grid">
+          {photos.map((p, i) => (
+            <a
+              href={lightbox[i].src}
+              data-caption={[p.camera, p.settings, p.taken && fmt(p.taken)].filter(Boolean).join('  ·  ')}
+            >
+              <Image src={p.image} alt={p.name} widths={[400, 800, 1200]} sizes="(max-width: 700px) 100vw, 33vw" loading="lazy" />
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {sections.map((s) => (
+        <section id={s.id}>
+          <h2>{s.title}</h2>
+          <p class="caption">{s.caption}</p>
+          <table>
+            <thead><tr><th>Date</th><th>Title</th></tr></thead>
+            <tbody>
+              {s.items.map(({ data }) => (
+                <tr>
+                  <td class="mono">{fmt(data.date)}</td>
+                  <td>
+                    {data.link ? <a href={data.link}>{data.title}</a> : data.title}
+                    <small>{data.summary}</small>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      ))}
+
+      <footer class="mono">© {new Date().getFullYear()} {NAME}</footer>
+    </main>
+
+    <dialog id="lightbox">
+      <figure>
+        <img alt="" />
+        <figcaption></figcaption>
+      </figure>
+    </dialog>
+
+    <script>
+      const dialog = document.querySelector<HTMLDialogElement>('#lightbox')!;
+      const img = dialog.querySelector('img')!;
+      const caption = dialog.querySelector('figcaption')!;
+      document.querySelectorAll<HTMLAnchorElement>('.grid a').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          img.src = a.href;
+          img.alt = a.querySelector('img')?.alt ?? '';
+          caption.textContent = a.dataset.caption ?? '';
+          dialog.showModal();
+        });
+      });
+      dialog.addEventListener('click', () => dialog.close()); // Esc closes natively
+    </script>
+  </body>
+</html>
