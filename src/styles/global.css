@@ -10,6 +10,13 @@
   font-weight: 700;
 }
 
+/* site name font */
+@font-face {
+  font-family: 'Alte Haas Grotesk';
+  src: url('/fonts/AlteHaasGroteskBold.ttf') format('truetype');
+  font-weight: 700;
+}
+
 :root {
   --bg: #fff;
   --fg: #171717;
@@ -36,7 +43,7 @@ section { margin-top: 6rem; }
   -webkit-font-smoothing: none;
 }
 
-h1 { font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 600; letter-spacing: -0.02em; text-transform: uppercase; margin: 0; line-height: 1; }
+h1 { font-family: 'Alte Haas Grotesk', var(--sans); font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 700; letter-spacing: -0.02em; margin: 0; line-height: 1; }
 h2 { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin: 0; }
 .caption { color: var(--muted); margin: 0.25rem 0 1.5rem; }
 
