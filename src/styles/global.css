@@ -1,19 +1,19 @@
 /* Look adapted from nodaysoff.run: grayscale, Jost for text, Tamzen bitmap font for labels/data. */
 @font-face {
   font-family: Tamzen;
-  src: url('/fonts/Tamzen7x14r.ttf') format('truetype');
+  src: url('/fonts/Tamzen7x14r.woff2') format('woff2');
   font-weight: 400;
 }
 @font-face {
   font-family: Tamzen;
-  src: url('/fonts/Tamzen7x14b.ttf') format('truetype');
+  src: url('/fonts/Tamzen7x14b.woff2') format('woff2');
   font-weight: 700;
 }
 
 /* site name font */
 @font-face {
   font-family: 'Alte Haas Grotesk';
-  src: url('/fonts/AlteHaasGroteskBold.ttf') format('truetype');
+  src: url('/fonts/AlteHaasGroteskBold.woff2') format('woff2');
   font-weight: 700;
 }
 
