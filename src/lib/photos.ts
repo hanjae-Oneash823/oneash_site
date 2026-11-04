@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import exifr from 'exifr';
 import type { ImageMetadata } from 'astro';
@@ -35,7 +36,8 @@ export const OTHER_SLUG = 'other';
 const files = import.meta.glob<{ default: ImageMetadata }>('../photos/**/*.{jpg,jpeg,JPG,JPEG}', { eager: true });
 
 // "3. (60X40) Tipsy Men, Ankara, 2025" → order 3, size 60 × 40, title, place, year
-const FILENAME = /^(?:(\d+)\.\s*)?(?:\(([\d.]+)\s*[xX×]\s*([\d.]+)\)\s*)?(.+?)(?:,\s*([^,]+?))?(?:,\s*(\d{4}))?$/;
+// "(15X10) Curtains, 2023" → title, year (a bare year is never taken as the place)
+const FILENAME = /^(?:(\d+)\.\s*)?(?:\(([\d.]+)\s*[xX×]\s*([\d.]+)\)\s*)?(.+?)(?:,(?!\s*\d{4}$)\s*([^,]+?))?(?:,\s*(\d{4}))?$/;
 const FOLDER = /^(?:(\d{4})\s+)?(.+)$/;
 
 type Parsed = Pick<Photo, 'title' | 'place' | 'year' | 'size' | 'order'>;
@@ -84,17 +86,19 @@ const newestFirst = (a: Photo, b: Photo) => when(b) - when(a);
 async function load(key: string, mod: { default: ImageMetadata }): Promise<Photo> {
   const rel = key.replace('../photos/', '');
   const folder = path.dirname(rel);
-  const file = path.basename(rel).replace(/\.[^.]+$/, '');
+  // NFC: macOS can store accented filenames decomposed (ö as o + ¨), which wouldn't match typed text
+  const file = path.basename(rel).replace(/\.[^.]+$/, '').normalize('NFC');
   const parsed = parseFilename(file);
   const exif = await readExif(rel);
-  const manual = DETAILS[parsed.title] ?? {};
+  const manual = DETAILS[file] ?? DETAILS[parsed.title] ?? {};
   return {
     image: mod.default,
-    path: rel.replace(/\.[^.]+$/, ''),
+    path: rel.replace(/\.[^.]+$/, '').normalize('NFC'),
     file,
     ...parsed,
-    date: manual.date ?? exif.date,
-    camera: manual.camera ?? exif.camera,
+    date: exif.date,
+    camera: exif.camera,
+    ...manual, // explicit keys win, including `place: undefined` to clear a misparsed place
     trip: folder === '.' ? OTHER_SLUG : slugify(folder),
   };
 }
@@ -105,7 +109,9 @@ let library: Promise<{ trips: Trip[]; all: Photo[] }> | undefined;
 export function getLibrary(): Promise<{ trips: Trip[]; all: Photo[] }> {
   library ??= (async () => {
     const all = await Promise.all(Object.entries(files).map(([key, mod]) => load(key, mod)));
-    const folders = [...new Set(all.map((p) => path.dirname(p.path)).filter((f) => f !== '.'))];
+    // every top-level folder is a trip, even before it has photos (placeholder pages)
+    const dirs = fs.readdirSync(PHOTO_DIR, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name.normalize('NFC'));
+    const folders = [...new Set([...dirs, ...all.map((p) => path.dirname(p.path)).filter((f) => f !== '.')])];
     const trips: Trip[] = folders
       .map((folder) => {
         const [, year, name] = folder.match(FOLDER)!;
@@ -123,7 +129,8 @@ export function getLibrary(): Promise<{ trips: Trip[]; all: Photo[] }> {
 // A reference is a photo's title, its filename, or "folder/filename" — whichever is unique.
 // Anything that matches zero or several photos fails the build, listing the candidates.
 export function resolvePhotos(refs: string[], all: Photo[], where: string): Photo[] {
-  return refs.map((ref) => {
+  return refs.map((raw) => {
+    const ref = raw.normalize('NFC');
     const hits = all.filter((p) => p.title === ref || p.file === ref || p.path === ref);
     if (hits.length === 1) return hits[0];
     const detail = hits.length

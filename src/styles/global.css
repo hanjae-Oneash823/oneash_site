@@ -80,6 +80,16 @@ html { scroll-behavior: smooth; }
 .photo-list a { display: grid; grid-template-columns: 4ch 1fr auto; gap: 1.5rem; align-items: baseline; padding: 0.3rem 0; text-decoration: none; color: var(--muted); transition: color 0.15s; }
 .photo-list a:hover, .photo-list a:focus-visible { color: var(--fg); }
 
+/* trips as square covers */
+.photo-list .trip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem 0.75rem; padding-top: 0.75rem; }
+@media (max-width: 600px) { .photo-list .trip-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 380px) { .photo-list .trip-grid { grid-template-columns: repeat(2, 1fr); } }
+.trip-grid a { display: block; padding: 0; }
+.trip-grid img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; transition: opacity 0.2s; }
+.trip-grid .trip-blank { display: block; aspect-ratio: 1; background: var(--line); }
+.trip-grid a:hover img { opacity: 0.85; }
+.trip-label { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0 0.5rem; margin-top: 0.4rem; }
+
 /* photography index: a shot location list, one row per photo, grouped by trip */
 .shot-list { margin: 3rem auto 0; overflow-x: auto; }
 .shot-list table { width: 100%; border-collapse: collapse; text-align: left; color: var(--muted); }
@@ -92,14 +102,35 @@ html { scroll-behavior: smooth; }
 @media (max-width: 700px) { .shot-list .cam { display: none; } }
 
 /* series page: one photo at a time, wall-label caption underneath */
-.photo-series { max-width: 960px; margin: 3rem auto 0; }
+/* photos and text share one column, so descriptions line up with photo edges */
+.photo-series { max-width: 720px; margin: 3rem auto 0; }
 .series-head { color: var(--muted); margin: 0 0 3rem; }
 .series-head a { text-decoration: none; }
 .series-head a:hover, .series-head a:focus-visible { color: var(--fg); }
-.photo-series figure { margin: 0 0 8rem; }
-.series-text { max-width: 560px; margin: 0 auto 5rem; }
+/* photos sit narrower than the text column */
+.photo-series figure { max-width: 560px; margin: 0 auto 8rem; }
+.series-text { margin: 0 auto 5rem; }
+/* exhibit page */
+/* poster on the left, title and info beside it; stacked on phones */
+.exhibit-top { display: grid; grid-template-columns: 200px 1fr; gap: 2rem; align-items: center; margin-bottom: 5rem; }
+.exhibit-head { text-align: left; }
+.exhibit-head h2 { text-transform: none; letter-spacing: 0; font-size: 2rem; font-weight: 500; margin-bottom: 0.75rem; }
+.exhibit-head p { color: var(--muted); margin: 0 0 1.5rem; }
+.exhibit-poster { display: block; width: 100%; height: auto; }
+@media (max-width: 600px) { .exhibit-top { grid-template-columns: 1fr; gap: 2rem; } .exhibit-poster { width: 55%; margin: 0 auto; } .exhibit-head { text-align: center; } }
+.exhibit-credits { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+.exhibit-part { margin-top: 8rem; }
+.exhibit-part h3 { text-align: center; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; font-size: 1.6rem; color: var(--tagline, var(--shimmer)); margin: 0 0 1.5rem; }
+.exhibit-part > .series-text { color: var(--muted); }
+.photo-note { margin: 1rem 0 0; color: var(--muted); font-size: 0.95rem; }
+/* mini prints: small, uncropped, like prints pinned to a wall */
+.mini-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.5rem 1.5rem; align-items: end; }
+/* every print fits the same 3:2 box: landscapes fill it, portraits keep the same height (narrower), so rows stay even */
+.mini-grid img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: contain; }
+.mini-grid span { display: block; margin-top: 0.4rem; color: var(--muted); }
+@media (max-width: 600px) { .mini-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem 1rem; } }
 .series-empty { color: var(--muted); text-align: center; }
-.photo-series img { display: block; width: auto; max-width: 100%; max-height: 85svh; height: auto; margin: 0 auto; }
+.photo-series img { display: block; width: auto; max-width: 100%; max-height: 65svh; height: auto; margin: 0 auto; }
 .photo-series figure { scroll-margin-top: 2rem; }
 .photo-series figcaption { display: flex; flex-wrap: wrap; gap: 0.25rem 2rem; margin-top: 0.75rem; color: var(--muted); }
 .photo-series figcaption span:nth-child(2) { color: var(--fg); }
@@ -164,3 +195,11 @@ h1 span { filter: url(#grain); } /* on each letter, not h1, so view-transition s
 @keyframes page-out { to { opacity: 0; } }
 @keyframes page-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
+
+/* click-to-enlarge viewer (components/Lightbox.astro) */
+a[data-lightbox] { display: block; cursor: zoom-in; }
+dialog#lightbox { border: 0; padding: 0; background: transparent; max-width: 95vw; max-height: 95vh; color: #a3a3a3; cursor: zoom-out; }
+dialog#lightbox::backdrop { background: rgb(10 10 10 / 0.95); }
+dialog#lightbox figure { margin: 0; }
+dialog#lightbox img { display: block; max-width: 95vw; max-height: 88vh; }
+dialog#lightbox figcaption { margin-top: 0.5rem; }

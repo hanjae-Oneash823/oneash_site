@@ -1,22 +1,31 @@
 ---
 // one photo per screen with a wall-label caption; used by trip, collection and exhibit pages
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import type { Photo } from '../lib/photos';
 
-interface Props { photos: Photo[] }
-const { photos } = Astro.props;
+interface Props {
+  photos: Photo[];
+  notes?: (string | undefined)[]; // optional text under each photo, same order as photos
+  start?: number; // first label number, so numbering can run across sections
+}
+const { photos, notes = [], start = 1 } = Astro.props;
 const pad = (n: number) => String(n).padStart(2, '0');
+const LIGHTBOX_WIDTH = 2000;
+const large = await Promise.all(photos.map((p) => getImage({ src: p.image, width: LIGHTBOX_WIDTH })));
 ---
 
 {photos.map((p, i) => (
-  <figure id={pad(i + 1)} class="photo">
-    <Image src={p.image} alt={p.title} widths={[800, 1200, 1600, 2400]} sizes="(max-width: 960px) 100vw, 960px" loading={i === 0 ? 'eager' : 'lazy'} />
+  <figure id={pad(start + i)} class="photo">
+    <a href={large[i].src} data-lightbox data-caption={p.title}>
+      <Image src={p.image} alt={p.title} widths={[560, 840, 1120]} sizes="(max-width: 600px) 100vw, 560px" loading={start + i === 1 ? 'eager' : 'lazy'} />
+    </a>
     <figcaption class="mono">
-      <span>{pad(i + 1)}</span>
+      <span>{pad(start + i)}</span>
       <span>{p.title}</span>
       <span>{p.place ?? '—'}</span>
       <span>{p.date ?? p.year ?? '—'}</span>
       <span>{p.camera ?? '—'}</span>
     </figcaption>
+    {notes[i] && <p class="photo-note">{notes[i]}</p>}
   </figure>
 ))}

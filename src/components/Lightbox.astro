@@ -1,0 +1,27 @@
+---
+// click-to-enlarge for any <a data-lightbox href="large.jpg" data-caption="…"> on the page.
+// native <dialog>: Esc closes it for free; a click anywhere closes it too.
+---
+
+<dialog id="lightbox">
+  <figure>
+    <img alt="" />
+    <figcaption class="mono"></figcaption>
+  </figure>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('#lightbox')!;
+  const img = dialog.querySelector('img')!;
+  const caption = dialog.querySelector('figcaption')!;
+  document.querySelectorAll<HTMLAnchorElement>('a[data-lightbox]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      img.src = a.href;
+      img.alt = a.querySelector('img')?.alt ?? '';
+      caption.textContent = a.dataset.caption ?? '';
+      dialog.showModal();
+    });
+  });
+  dialog.addEventListener('click', () => dialog.close());
+</script>

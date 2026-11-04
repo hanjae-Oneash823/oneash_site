@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import { getLibrary } from '../../lib/photos';
 
@@ -7,12 +8,12 @@ const { trips, all } = await getLibrary();
 const collections = (await getCollection('photoCollections')).toSorted((a, b) => a.data.title.localeCompare(b.data.title));
 const exhibits = (await getCollection('exhibits')).toSorted((a, b) => b.data.year - a.data.year);
 
-// each row: [left mono column, name, right mono column]
+// sections in page order; list rows are [left mono column, name, right mono column], trips render as a thumbnail grid
 const lists = [
-  { label: 'trips', rows: trips.map((t) => ({ href: `/photography/trips/${t.slug}`, a: t.year, name: t.name, b: t.photos.length })) },
-  { label: 'collections', rows: collections.map((c) => ({ href: `/photography/collections/${c.id}`, a: '', name: c.data.title, b: c.data.photos.length })) },
   { label: 'exhibits', rows: exhibits.map((e) => ({ href: `/photography/exhibits/${e.id}`, a: e.data.year, name: e.data.title, b: e.data.venue })) },
-].filter((l) => l.rows.length);
+  { label: 'trips', rows: [], isTrips: true },
+  { label: 'collections', rows: collections.map((c) => ({ href: `/photography/collections/${c.id}`, a: '', name: c.data.title, b: c.data.photos.length })) },
+].filter((l) => (l.isTrips ? trips.length : l.rows.length));
 ---
 
 <Base title="Photography">
@@ -25,11 +26,25 @@ const lists = [
     {lists.map((l) => (
       <div class="photo-list">
         <h3 class="mono">{l.label}</h3>
+        {l.isTrips ? (
+        <ul class="trip-grid">
+          {trips.map((t) => (
+            <li>
+              <a href={`/photography/trips/${t.slug}`}>
+                {/* cover = the trip's first photo, cropped square */}
+                {t.photos[0] ? <Image src={t.photos[0].image} alt="" widths={[300, 600]} sizes="(max-width: 600px) 33vw, 140px" loading="lazy" /> : <span class="trip-blank" />}
+                <span class="trip-label"><span>{t.name}</span><span class="mono">{t.year ?? ''}{t.year ? ' · ' : ''}{t.photos.length}</span></span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        ) : (
         <ul>
           {l.rows.map((r) => (
             <li><a href={r.href}><span class="mono">{r.a}</span><span>{r.name}</span><span class="mono">{r.b}</span></a></li>
           ))}
         </ul>
+        )}
       </div>
     ))}
 

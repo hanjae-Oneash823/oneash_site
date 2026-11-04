@@ -1,0 +1,70 @@
+---
+// /photography/exhibits/<slug>: header, credits, statement, then each part of the show
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { Image, getImage } from 'astro:assets';
+import Base from '../../../layouts/Base.astro';
+import PhotoStack from '../../../components/PhotoStack.astro';
+import Lightbox from '../../../components/Lightbox.astro';
+import { getLibrary, resolvePhotos } from '../../../lib/photos';
+
+export async function getStaticPaths() {
+  const exhibits = await getCollection('exhibits');
+  return exhibits.map((e) => ({ params: { slug: e.id }, props: { entry: e } }));
+}
+
+interface Props { entry: CollectionEntry<'exhibits'> }
+const { entry } = Astro.props;
+const { title, poster, venue, dates, year, credits } = entry.data;
+const { all } = await getLibrary();
+const { Content: Statement } = await render(entry);
+const LIGHTBOX_WIDTH = 2000;
+const large = (src: ImageMetadata) => getImage({ src, width: LIGHTBOX_WIDTH }).then((r) => r.src);
+const posterLarge = poster && (await large(poster));
+
+// resolve every section's photos; stacked photos are numbered continuously across sections
+let next = 1;
+const sections = entry.data.sections.map((s) => {
+  const refs = s.photos.map((p) => (typeof p === 'string' ? { photo: p } : p));
+  const photos = resolvePhotos(refs.map((r) => r.photo), all, `src/content/exhibits/${entry.id}.md (${s.title})`);
+  const start = next;
+  if (s.layout === 'stack') next += photos.length;
+  return { ...s, photos, notes: refs.map((r) => r.note), start };
+});
+const miniLarge = await Promise.all(sections.map((s) => (s.layout === 'grid' ? Promise.all(s.photos.map((p) => large(p.image))) : [])));
+---
+
+<Base title={title}>
+  <section class="photo-series exhibit">
+    <p class="series-head mono"><a href="/photography">photography</a> / exhibits / <span>{title}</span></p>
+
+    <div class="exhibit-top">
+      {poster && <a href={posterLarge} data-lightbox data-caption={`${title}, poster`}><Image class="exhibit-poster" src={poster} alt={`${title} exhibition poster`} widths={[400, 800]} sizes="(max-width: 600px) 55vw, 200px" /></a>}
+      <header class="exhibit-head">
+        <h2>{title}</h2>
+        <p class="mono">{venue}<br />{dates ?? year}</p>
+        {credits.length > 0 && <ul class="exhibit-credits">{credits.map((c) => <li>{c}</li>)}</ul>}
+      </header>
+    </div>
+
+    <div class="series-text"><Statement /></div>
+
+    {sections.map((s, si) => (
+      <section class="exhibit-part">
+        <h3 class="mono">{s.title}</h3>
+        {s.text && <p class="series-text">{s.text}</p>}
+        {s.layout === 'stack' && <PhotoStack photos={s.photos} notes={s.notes} start={s.start} />}
+        {s.layout === 'grid' && (
+          <ul class="mini-grid">
+            {s.photos.map((p, i) => (
+              <li>
+                <a href={miniLarge[si][i]} data-lightbox data-caption={`${p.title}${p.year ? `, ${p.year}` : ''}`}><Image src={p.image} alt={p.title} widths={[400, 800]} sizes="(max-width: 600px) 45vw, 240px" loading="lazy" /></a>
+                <span class="mono">{p.title}{p.year ? `, ${p.year}` : ''}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    ))}
+  </section>
+  <Lightbox />
+</Base>
