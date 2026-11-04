@@ -50,7 +50,8 @@ h2 { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin:
 header { text-align: center; }
 /* menu as a scale bar: each word draws its piece of the hairline (half the gap on each side),
    trimmed to the tick centers at both ends; ruler sits above the words, ticks hang down from it, current page gets the long one */
-header nav { --nav-gap: 2.5rem; display: inline-flex; justify-content: center; gap: 0.5rem var(--nav-gap); }
+/* gap shrinks on narrow screens so the ruler stays one line; 290px ≈ total label width, update if labels change */
+header nav { --nav-gap: clamp(0.75rem, (100vw - 2.5rem - 290px) / 3, 2.5rem); display: inline-flex; justify-content: center; gap: 0.5rem var(--nav-gap); }
 header nav a { position: relative; padding-top: 17px; line-height: 1; text-transform: none; letter-spacing: 0.04em; }
 header nav a::before { content: ''; position: absolute; top: 0; left: calc(var(--nav-gap) / -2); right: calc(var(--nav-gap) / -2); height: 1px; background: var(--muted); }
 header nav a:first-child::before { left: 50%; }
