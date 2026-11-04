@@ -1,0 +1,38 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getLibrary } from '../../lib/photos';
+
+const { trips, all } = await getLibrary();
+const collections = (await getCollection('photoCollections')).toSorted((a, b) => a.data.title.localeCompare(b.data.title));
+const exhibits = (await getCollection('exhibits')).toSorted((a, b) => b.data.year - a.data.year);
+
+// each row: [left mono column, name, right mono column]
+const lists = [
+  { label: 'trips', rows: trips.map((t) => ({ href: `/photography/trips/${t.slug}`, a: t.year, name: t.name, b: t.photos.length })) },
+  { label: 'collections', rows: collections.map((c) => ({ href: `/photography/collections/${c.id}`, a: '', name: c.data.title, b: c.data.photos.length })) },
+  { label: 'exhibits', rows: exhibits.map((e) => ({ href: `/photography/exhibits/${e.id}`, a: e.data.year, name: e.data.title, b: e.data.venue })) },
+].filter((l) => l.rows.length);
+---
+
+<Base title="Photography">
+  <section class="photo-index">
+    <div class="photo-intro">
+      <p>i started taking photos to <span class="hl">archive</span>. growing up between ohio, texas, and korea, nothing stayed put for long, <span class="hl">so i built a fortress of photographs</span> instead: proof that i had belonged somewhere, even if i couldn't stay. somewhere along the way that changed. now i photograph to understand why a place that felt completely alien can suddenly feel warm. it's almost always a person that does it, <span class="hl">even just a silhouette against a skyline or a hand in the corner of a frame</span>.</p>
+      <p class="mono"><a href="/photography/journey">my journey in photography →</a></p>
+    </div>
+
+    {lists.map((l) => (
+      <div class="photo-list">
+        <h3 class="mono">{l.label}</h3>
+        <ul>
+          {l.rows.map((r) => (
+            <li><a href={r.href}><span class="mono">{r.a}</span><span>{r.name}</span><span class="mono">{r.b}</span></a></li>
+          ))}
+        </ul>
+      </div>
+    ))}
+
+    <p class="mono photo-all"><a href="/photography/all">all {all.length} photos, as a list →</a></p>
+  </section>
+</Base>

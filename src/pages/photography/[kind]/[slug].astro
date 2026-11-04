@@ -1,0 +1,51 @@
+---
+// /photography/trips/<slug>, /photography/collections/<slug>, /photography/exhibits/<slug>
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import PhotoStack from '../../../components/PhotoStack.astro';
+import { getLibrary, resolvePhotos, type Photo } from '../../../lib/photos';
+
+export async function getStaticPaths() {
+  const { trips, all } = await getLibrary();
+  const collections = await getCollection('photoCollections');
+  const exhibits = await getCollection('exhibits');
+  return [
+    ...trips.map((t) => ({
+      params: { kind: 'trips', slug: t.slug },
+      props: { title: t.name, meta: t.year ? String(t.year) : undefined, photos: t.photos },
+    })),
+    ...collections.map((c) => ({
+      params: { kind: 'collections', slug: c.id },
+      props: { title: c.data.title, photos: resolvePhotos(c.data.photos, all, `src/content/collections/${c.id}.md`), entry: c },
+    })),
+    ...exhibits.map((e) => ({
+      params: { kind: 'exhibits', slug: e.id },
+      props: {
+        title: e.data.title,
+        meta: [e.data.venue, e.data.dates ?? e.data.year].join(' · '),
+        photos: resolvePhotos(e.data.photos, all, `src/content/exhibits/${e.id}.md`),
+        entry: e,
+      },
+    })),
+  ];
+}
+
+interface Props {
+  title: string;
+  meta?: string;
+  photos: Photo[];
+  entry?: CollectionEntry<'photoCollections'> | CollectionEntry<'exhibits'>;
+}
+const { kind } = Astro.params;
+const { title, meta, photos, entry } = Astro.props;
+const Body = entry && (await render(entry)).Content;
+---
+
+<Base title={title}>
+  <section class="photo-series">
+    <p class="series-head mono"><a href="/photography">photography</a> / {kind} / <span>{title}</span>{meta && ` · ${meta}`}</p>
+    {Body && <div class="series-text"><Body /></div>}
+    {photos.length === 0 && <p class="mono series-empty">no photos yet.</p>}
+    <PhotoStack photos={photos} />
+  </section>
+</Base>

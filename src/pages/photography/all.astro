@@ -1,0 +1,38 @@
+---
+// every photo as a shot location list, grouped by trip
+import Base from '../../layouts/Base.astro';
+import { getLibrary, type Photo } from '../../lib/photos';
+
+const { trips } = await getLibrary();
+const pad = (n: number) => String(n).padStart(2, '0');
+const dash = (v?: string | number) => v ?? '—';
+const date = (p: Photo) => p.date ?? p.year;
+---
+
+<Base title="All photos">
+  <section class="shot-list mono">
+    <p class="series-head"><a href="/photography">photography</a> / all</p>
+    {trips.length === 0 && <p>no photos yet: npm run add-photos ~/path/to/folder</p>}
+    {trips.length > 0 && (
+      <table>
+        <thead>
+          <tr><th>no.</th><th>title</th><th>location</th><th>date</th><th class="cam">camera</th></tr>
+        </thead>
+        {trips.map((t) => (
+          <tbody>
+            <tr class="group"><th colspan="5" scope="rowgroup"><a href={`/photography/trips/${t.slug}`}>{[t.year, t.name].filter(Boolean).join(' · ')}</a></th></tr>
+            {t.photos.map((p, i) => (
+              <tr>
+                <td>{pad(i + 1)}</td>
+                <td><a href={`/photography/trips/${t.slug}#${pad(i + 1)}`}>{p.title}</a></td>
+                <td>{dash(p.place)}</td>
+                <td>{dash(date(p))}</td>
+                <td class="cam">{dash(p.camera)}</td>
+              </tr>
+            ))}
+          </tbody>
+        ))}
+      </table>
+    )}
+  </section>
+</Base>

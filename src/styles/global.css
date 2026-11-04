@@ -67,17 +67,42 @@ html { scroll-behavior: smooth; }
 .caption { color: var(--muted); margin: 0.25rem 0 1.5rem; }
 
 
-/* masonry-style columns that keep each photo's aspect ratio */
-.grid { columns: 3 300px; column-gap: 0.75rem; }
-.grid a { display: block; margin-bottom: 0.75rem; break-inside: avoid; }
-.grid img { width: 100%; height: auto; display: block; transition: opacity 0.2s; }
-.grid a:hover img { opacity: 0.85; }
+/* photography landing: intro, then trips / collections / exhibits as catalog lists */
+.photo-index { max-width: 560px; margin: 3rem auto 0; }
+.photo-intro { margin-bottom: 3rem; }
+/* highlighted phrases: tagline yellow in dark mode, title-shimmer gold in light mode (no light tagline color) */
+.hl { color: var(--tagline, var(--shimmer)); }
+.photo-intro a, .photo-all a { color: var(--muted); text-decoration: none; }
+.photo-intro a:hover, .photo-all a:hover { color: var(--fg); }
+.photo-list { margin-bottom: 2.5rem; }
+.photo-list h3 { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 400; color: var(--muted); margin: 0 0 0.5rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+.photo-list ul { list-style: none; padding: 0; margin: 0; }
+.photo-list a { display: grid; grid-template-columns: 4ch 1fr auto; gap: 1.5rem; align-items: baseline; padding: 0.3rem 0; text-decoration: none; color: var(--muted); transition: color 0.15s; }
+.photo-list a:hover, .photo-list a:focus-visible { color: var(--fg); }
 
-dialog { border: 0; padding: 0; background: transparent; max-width: 95vw; max-height: 95vh; color: #ededed; }
-dialog::backdrop { background: rgb(10 10 10 / 0.95); }
-dialog figure { margin: 0; }
-dialog img { max-width: 95vw; max-height: 88vh; display: block; }
-figcaption { margin-top: 0.5rem; color: #a3a3a3; }
+/* photography index: a shot location list, one row per photo, grouped by trip */
+.shot-list { margin: 3rem auto 0; overflow-x: auto; }
+.shot-list table { width: 100%; border-collapse: collapse; text-align: left; color: var(--muted); }
+.shot-list th, .shot-list td { font: inherit; padding: 0.35rem 1.5rem 0.35rem 0; white-space: nowrap; vertical-align: baseline; }
+.shot-list thead th { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 400; border-bottom: 1px solid var(--fg); padding-bottom: 0.5rem; }
+.shot-list .group th { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; padding-top: 2rem; border-bottom: 1px solid var(--line); color: var(--fg); }
+.shot-list a { text-decoration: none; }
+.shot-list tbody tr:not(.group):hover { color: var(--fg); }
+.shot-list td:first-child { width: 4ch; }
+@media (max-width: 700px) { .shot-list .cam { display: none; } }
+
+/* series page: one photo at a time, wall-label caption underneath */
+.photo-series { max-width: 960px; margin: 3rem auto 0; }
+.series-head { color: var(--muted); margin: 0 0 3rem; }
+.series-head a { text-decoration: none; }
+.series-head a:hover, .series-head a:focus-visible { color: var(--fg); }
+.photo-series figure { margin: 0 0 8rem; }
+.series-text { max-width: 560px; margin: 0 auto 5rem; }
+.series-empty { color: var(--muted); text-align: center; }
+.photo-series img { display: block; width: auto; max-width: 100%; max-height: 85svh; height: auto; margin: 0 auto; }
+.photo-series figure { scroll-margin-top: 2rem; }
+.photo-series figcaption { display: flex; flex-wrap: wrap; gap: 0.25rem 2rem; margin-top: 0.75rem; color: var(--muted); }
+.photo-series figcaption span:nth-child(2) { color: var(--fg); }
 
 table { width: 100%; border-collapse: collapse; }
 th { text-align: left; color: var(--muted); font-weight: 400; text-transform: uppercase; }
@@ -107,7 +132,7 @@ h1 span { animation: shimmer 9s steps(1, end) infinite; animation-delay: calc(va
   14.444% { color: var(--shimmer-soft); }
 }
 @media (prefers-reduced-motion: reduce) { h1 span { animation: none; } }
-h1 { filter: url(#grain); }
+h1 span { filter: url(#grain); } /* on each letter, not h1, so view-transition snapshots of the letters keep the grain */
 @media (max-width: 700px) { h1 { font-size: 3rem; } }
 .nav-toggle { background: none; border: 0; padding: 0; cursor: pointer; font-family: var(--mono); font-size: 14px; -webkit-font-smoothing: none; text-transform: uppercase; letter-spacing: 0.2em; color: var(--muted); margin-bottom: 0.75rem; }
 /* << menu >> : arrows point outward (expand), flip inward when open (collapse); hover nudges them the way they point */
@@ -127,3 +152,15 @@ h1 { filter: url(#grain); }
 .nav-wrap[inert] { grid-template-rows: 0fr; margin-bottom: 0; }
 .nav-wrap[inert] > nav { clip-path: inset(0 50%); opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .nav-wrap, .nav-wrap > nav { transition: none; } }
+
+/* page transitions: driven by <ClientRouter /> in Base.astro */
+/* three beats, back to back: old page fades out, title letters move (staggered), new page fades in */
+:root { --vt-fade: 400ms; --vt-move: 800ms; --vt-stagger: 60ms; --vt-move-ease: cubic-bezier(0.76, 0, 0.24, 1); } /* ease-in-out quart; plain ease-in-out reads as linear here */
+/* per-letter names (title-0, title-1, ...) and their delays come from Base.astro */
+::view-transition-old(root) { animation: var(--vt-fade) ease-in both page-out; }
+::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation-duration: var(--vt-move); animation-timing-function: var(--vt-move-ease); animation-fill-mode: both; }
+::view-transition-group(root) { animation-duration: var(--vt-fade); }
+::view-transition-new(root) { animation: var(--vt-fade) ease-out calc(var(--vt-fade) + var(--vt-move) + (var(--vt-title-chars) - 1) * var(--vt-stagger)) both page-in; }
+@keyframes page-out { to { opacity: 0; } }
+@keyframes page-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }

@@ -1,13 +1,14 @@
 #!/bin/sh
 # Copy photos from a folder into src/photos, shrunk to MAX px on the long edge.
 # Originals are never modified. Uses macOS's built-in `sips`.
-# Usage: npm run add-photos ~/Pictures/portfolio
+# Usage: npm run add-photos ~/Pictures/portfolio            → singles
+#        npm run add-photos ~/Pictures/japan "2026 Japan"  → a series folder
 set -eu
 
 MAX=3000
 QUALITY=85
 SRC="${1:?usage: npm run add-photos <folder>}"
-DEST="$(cd "$(dirname "$0")/.." && pwd)/src/photos"
+DEST="$(cd "$(dirname "$0")/.." && pwd)/src/photos${2:+/$2}"
 
 [ -d "$SRC" ] || { echo "error: not a folder: $SRC" >&2; exit 1; }
 mkdir -p "$DEST"
@@ -35,4 +36,4 @@ for f in "$SRC"/*; do
   fi
 done
 
-echo "$added photo(s) added to src/photos"
+echo "$added photo(s) added to $DEST"
