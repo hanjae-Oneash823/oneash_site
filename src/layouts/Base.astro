@@ -9,14 +9,15 @@ interface Props {
 const NAME = 'oneash';
 const TAGLINE = 'building digital things in a digital world.';
 const NAV = [
-  { href: '/research', label: 'Research' },
-  { href: '/photography', label: 'Photography' },
-  { href: '/cartography', label: 'Cartography' },
-  { href: '/app-dev', label: 'App dev' },
+  { href: '/research', label: 'research' },
+  { href: '/photography', label: 'photography' },
+  { href: '/cartography', label: 'cartography' },
+  { href: '/app-dev', label: 'app dev' },
 ];
 
 const { title } = Astro.props;
 const path = Astro.url.pathname.replace(/\/$/, '');
+const isHome = path === '';
 ---
 
 <html lang="en">
@@ -46,9 +47,25 @@ const path = Astro.url.pathname.replace(/\/$/, '');
         <slot name="hero" />
         <h1><a href="/" aria-label={NAME}>{[...NAME].map((ch, i) => <span aria-hidden="true" style={`--i: ${i}`}>{ch}</span>)}</a></h1>
         <p class="caption">{TAGLINE}<em class="tagline-sub">(and sometimes analog things too)</em></p>
-        <nav aria-label="Sections">
+        {/* homepage: menu folds behind a toggle; other pages: always open */}
+        {isHome && <button class="nav-toggle" type="button" aria-expanded="true" aria-controls="site-nav">menu</button>}
+        <div class="nav-wrap" id="site-nav">
+          <nav aria-label="Sections">
             {NAV.map((n) => <a href={n.href} aria-current={path === n.href ? 'page' : undefined}>{n.label}</a>)}
           </nav>
+        </div>
+        {isHome && (
+          <script is:inline>
+            // collapse before first paint; without JS the menu just stays open
+            (() => {
+              const btn = document.querySelector('.nav-toggle');
+              const wrap = document.getElementById('site-nav');
+              const set = (open) => { btn.setAttribute('aria-expanded', open); wrap.inert = !open; };
+              set(false);
+              btn.addEventListener('click', () => set(btn.getAttribute('aria-expanded') !== 'true'));
+            })();
+          </script>
+        )}
       </header>
 
       <slot />
