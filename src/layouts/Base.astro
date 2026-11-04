@@ -1,0 +1,58 @@
+---
+import '@fontsource-variable/jost';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+}
+
+const NAME = 'oneash';
+const TAGLINE = 'building digital things in a digital world.';
+const NAV = [
+  { href: '/research', label: 'Research' },
+  { href: '/photography', label: 'Photography' },
+  { href: '/cartography', label: 'Cartography' },
+  { href: '/app-dev', label: 'App dev' },
+];
+
+const { title } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, '');
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title ? `${title} · ${NAME}` : NAME}</title>
+    <meta name="description" content={TAGLINE} />
+  </head>
+  <body>
+    <!-- grain for the site title; raise intercept (max 1) for less noise, lower it for more -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <filter id="grain">
+        <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" stitchTiles="stitch" result="noise" />
+        <feColorMatrix in="noise" type="saturate" values="0" result="mono" />
+        <feComponentTransfer in="mono" result="soft">
+          <feFuncR type="linear" slope="0.8" intercept="0.2" />
+          <feFuncG type="linear" slope="0.8" intercept="0.2" />
+          <feFuncB type="linear" slope="0.8" intercept="0.2" />
+        </feComponentTransfer>
+        <feComposite in="soft" in2="SourceGraphic" operator="in" result="masked" />
+        <feBlend in="SourceGraphic" in2="masked" mode="multiply" />
+      </filter>
+    </svg>
+    <main>
+      <header>
+        <slot name="hero" />
+        <h1><a href="/" aria-label={NAME}>{[...NAME].map((ch, i) => <span aria-hidden="true" style={`--i: ${i}`}>{ch}</span>)}</a></h1>
+        <p class="caption">{TAGLINE}<em class="tagline-sub">(and sometimes analog things too)</em></p>
+        <nav aria-label="Sections">
+            {NAV.map((n) => <a href={n.href} aria-current={path === n.href ? 'page' : undefined}>{n.label}</a>)}
+          </nav>
+      </header>
+
+      <slot />
+
+    </main>
+  </body>
+</html>

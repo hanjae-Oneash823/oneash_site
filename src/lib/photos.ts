@@ -46,6 +46,7 @@ export async function getPhotos(): Promise<Photo[]> {
       };
     }),
   );
-  // newest first; photos without a date go last
-  return photos.toSorted((a, b) => (b.taken?.getTime() ?? 0) - (a.taken?.getTime() ?? 0));
+  // ordered by filename, numbers compared numerically ("2. x" before "10. x").
+  // Rename files to reorder.
+  return photos.toSorted((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 }

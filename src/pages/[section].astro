@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+
+export function getStaticPaths() {
+  const SECTIONS = [
+    { slug: 'research', collection: 'research', title: 'Research', caption: 'what i have been thinking about.' },
+    { slug: 'cartography', collection: 'cartography', title: 'Cartography', caption: 'maps i have made.' },
+    { slug: 'app-dev', collection: 'projects', title: 'App dev', caption: 'code, mostly.' },
+  ] as const;
+  return SECTIONS.map((s) => ({ params: { section: s.slug }, props: s }));
+}
+
+const { collection, title, caption } = Astro.props;
+const fmt = (d: Date) => d.toISOString().slice(0, 10);
+const items = (await getCollection(collection)).toSorted((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<Base title={title}>
+  <section>
+    <h2>{title}</h2>
+    <p class="caption">{caption}</p>
+    <table>
+      <thead><tr><th>Date</th><th>Title</th></tr></thead>
+      <tbody>
+        {items.map(({ data }) => (
+          <tr>
+            <td class="mono">{fmt(data.date)}</td>
+            <td>
+              {data.link ? <a href={data.link}>{data.title}</a> : data.title}
+              <small>{data.summary}</small>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
+</Base>

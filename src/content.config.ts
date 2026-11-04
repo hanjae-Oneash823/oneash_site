@@ -11,5 +11,6 @@ const entry = z.object({
 
 export const collections = {
   research: defineCollection({ loader: glob({ pattern: '*.md', base: './src/content/research' }), schema: entry }),
+  cartography: defineCollection({ loader: glob({ pattern: '*.md', base: './src/content/cartography' }), schema: entry }),
   projects: defineCollection({ loader: glob({ pattern: '*.md', base: './src/content/projects' }), schema: entry }),
 };

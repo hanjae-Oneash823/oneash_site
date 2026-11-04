@@ -1,116 +1,44 @@
 ---
-import '@fontsource-variable/jost';
-import '../styles/global.css';
-import { Image, getImage } from 'astro:assets';
-import { getCollection } from 'astro:content';
-import { getPhotos } from '../lib/photos';
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import homePhoto from '../photos/4. (80X40) Mountains over Vík, Iceland, 2023.jpg';
 
-const NAME = 'oneash';
-const TAGLINE = 'photographs, research, and things i built.';
-const LIGHTBOX_WIDTH = 2400;
-
-const photos = await getPhotos();
-const lightbox = await Promise.all(photos.map((p) => getImage({ src: p.image, width: LIGHTBOX_WIDTH })));
-
-const byDate = <T extends { data: { date: Date } }>(items: T[]) =>
-  items.toSorted((a, b) => b.data.date.getTime() - a.data.date.getTime());
-const research = byDate(await getCollection('research'));
-const projects = byDate(await getCollection('projects'));
-
-const years = photos.flatMap((p) => (p.taken ? [p.taken.getFullYear()] : []));
-const stats = [
-  [photos.length, 'frames'],
-  [years.length ? Math.max(...years) - Math.min(...years) + 1 : 0, 'years shooting'],
-  [new Set(photos.map((p) => p.camera).filter(Boolean)).size, 'cameras'],
-  [research.length, 'papers'],
-  [projects.length, 'projects'],
-].filter(([n]) => n); // hide stats that are still 0
-
-const fmt = (d: Date) => d.toISOString().slice(0, 10);
-const sections = [
-  { id: 'research', title: 'Research', caption: 'what i have been thinking about.', items: research },
-  { id: 'projects', title: 'Projects', caption: 'code, mostly.', items: projects },
+const CONTACT = [
+  { label: 'github', href: 'https://github.com/hanjae-Oneash823', text: 'hanjae-Oneash823' },
+  { label: 'email', href: 'mailto:hanjae_kim@hotmail.com', text: 'hanjae_kim@hotmail.com' },
+  { label: 'instagram', href: 'https://www.instagram.com/o._.neash/', text: '@o._.neash' },
 ];
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{NAME}</title>
-    <meta name="description" content={TAGLINE} />
-  </head>
-  <body>
-    <main>
-      <header>
-        <h1>{NAME}</h1>
-        <p class="caption">{TAGLINE}</p>
-        <div class="stats">
-          {stats.map(([n, label]) => <div class="stat"><strong>{n}</strong><span>{label}</span></div>)}
-        </div>
-      </header>
+<Base>
+  <Image slot="hero" class="home-photo" src={homePhoto} alt="Mountains over Vík, Iceland, 2023" widths={[420, 840, 1260]} sizes="(max-width: 700px) 100vw, 420px" />
+  <div class="home">
+  <div class="intro">
+    <p>hi, i'm Hanjae. i'm an undergrad studying life sciences in Korea. i do research in functional genomics, mainly on splicing isoforms.</p>
+    <p>in my spare time i take photos, usually on a Nikon Zfc or a Canonet QL17. i also draw maps, and i drive to the beach on weekends.</p>
+    <p>this site is a small collection of things i've made over the years. most of them are digital and some are analog. feel free to reach out about anything. i'll get back to you as soon as i can.</p>
+    <ul class="links mono">
+      {CONTACT.map((c) => <li>{c.label}: <a href={c.href} data-copy={c.href.startsWith('mailto:') ? c.text : undefined}>{c.text}</a></li>)}
+    </ul>
+    <footer class="mono">© {new Date().getFullYear()} Hanjae Kim</footer>
+  </div>
+  </div>
+</Base>
 
-      <section id="photography">
-        <h2>Photography</h2>
-        <p class="caption">click any frame to view it larger.</p>
-        {photos.length === 0 && <p class="mono">no photos yet: npm run add-photos ~/path/to/folder</p>}
-        <div class="grid">
-          {photos.map((p, i) => (
-            <a
-              href={lightbox[i].src}
-              data-caption={[p.camera, p.settings, p.taken && fmt(p.taken)].filter(Boolean).join('  ·  ')}
-            >
-              <Image src={p.image} alt={p.name} widths={[400, 800, 1200]} sizes="(max-width: 700px) 100vw, 33vw" loading="lazy" />
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {sections.map((s) => (
-        <section id={s.id}>
-          <h2>{s.title}</h2>
-          <p class="caption">{s.caption}</p>
-          <table>
-            <thead><tr><th>Date</th><th>Title</th></tr></thead>
-            <tbody>
-              {s.items.map(({ data }) => (
-                <tr>
-                  <td class="mono">{fmt(data.date)}</td>
-                  <td>
-                    {data.link ? <a href={data.link}>{data.title}</a> : data.title}
-                    <small>{data.summary}</small>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      ))}
-
-      <footer class="mono">© {new Date().getFullYear()} {NAME}</footer>
-    </main>
-
-    <dialog id="lightbox">
-      <figure>
-        <img alt="" />
-        <figcaption></figcaption>
-      </figure>
-    </dialog>
-
-    <script>
-      const dialog = document.querySelector<HTMLDialogElement>('#lightbox')!;
-      const img = dialog.querySelector('img')!;
-      const caption = dialog.querySelector('figcaption')!;
-      document.querySelectorAll<HTMLAnchorElement>('.grid a').forEach((a) => {
-        a.addEventListener('click', (e) => {
-          e.preventDefault();
-          img.src = a.href;
-          img.alt = a.querySelector('img')?.alt ?? '';
-          caption.textContent = a.dataset.caption ?? '';
-          dialog.showModal();
-        });
-      });
-      dialog.addEventListener('click', () => dialog.close()); // Esc closes natively
-    </script>
-  </body>
-</html>
+<script>
+  const COPIED_MS = 1500;
+  document.querySelectorAll<HTMLAnchorElement>('a[data-copy]').forEach((a) => {
+    const original = a.textContent;
+    a.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        await navigator.clipboard.writeText(a.dataset.copy!);
+        a.textContent = 'copied!';
+      } catch {
+        window.location.href = a.href; // clipboard blocked: fall back to mail app
+        return;
+      }
+      setTimeout(() => (a.textContent = original), COPIED_MS);
+    });
+  });
+</script>
